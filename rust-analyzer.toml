@@ -1,0 +1,1 @@
+cargo.target = "wasm32-wasip1"
