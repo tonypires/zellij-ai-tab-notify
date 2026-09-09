@@ -8,6 +8,10 @@
                           needs attention
 ```
 
+
+
+https://github.com/user-attachments/assets/4cad2063-399e-4e5f-8155-c3199e8a30a9
+
 A [Zellij](https://zellij.dev) plugin that renames a background tab to flag it as
 "needs attention" when a process running in one of its panes — in particular a
 [Claude Code](https://claude.com/claude-code) session — finishes responding or is
