@@ -8,10 +8,6 @@
                           needs attention
 ```
 
-<video src="assets/demo.mp4" controls autoplay muted loop>
-  Your browser doesn't support the <code>video</code> element.
-</video>
-
 A [Zellij](https://zellij.dev) plugin that renames a background tab to flag it as
 "needs attention" when a process running in one of its panes — in particular a
 [Claude Code](https://claude.com/claude-code) session — finishes responding or is
