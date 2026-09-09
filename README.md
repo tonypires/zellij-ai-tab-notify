@@ -1,4 +1,4 @@
-# zellij-ai-tab-notify
+# Zellij AI Tab Notify - Know which Zellij tab needs your attention
 
 ```
  ┌─────────┐ ┌─────────┐ ┌─────────────┐ ┌─────────┐
@@ -9,8 +9,8 @@
 ```
 
 A [Zellij](https://zellij.dev) plugin that renames a background tab to flag it as
-"needs attention" when a process running in one of its panes — in particular a
-[Claude Code](https://claude.com/claude-code) session — finishes responding or is
+"needs attention" when a process running in one of its panes - in particular a
+[Claude Code](https://claude.com/claude-code) session - finishes responding or is
 waiting on input. The marker clears automatically the moment you focus that tab
 again, and your original tab name is restored exactly.
 
