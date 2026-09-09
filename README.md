@@ -8,9 +8,6 @@
                           needs attention
 ```
 
-https://github.com/user-attachments/assets/17a49594-b822-4416-b5c1-a00e9fee1976
-
-
 A [Zellij](https://zellij.dev) plugin that renames a background tab to flag it as
 "needs attention" when a process running in one of its panes — in particular a
 [Claude Code](https://claude.com/claude-code) session — finishes responding or is
@@ -19,6 +16,8 @@ again, and your original tab name is restored exactly.
 
 The plugin never reads pane content. It only reacts to explicit signals sent over
 Zellij's `zellij pipe` mechanism, typically from a Claude Code hook.
+
+https://github.com/user-attachments/assets/17a49594-b822-4416-b5c1-a00e9fee1976
 
 ## Supported coding harnesses
 
