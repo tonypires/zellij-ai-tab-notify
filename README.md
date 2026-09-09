@@ -17,7 +17,7 @@ again, and your original tab name is restored exactly.
 The plugin never reads pane content. It only reacts to explicit signals sent over
 Zellij's `zellij pipe` mechanism, from a Claude Code hook.
 
-https://github.com/user-attachments/assets/17a49594-b822-4416-b5c1-a00e9fee1976
+https://github.com/user-attachments/assets/829d34a4-d5a2-46da-9867-3df2808d6b9f
 
 ## Supported coding harnesses
 
