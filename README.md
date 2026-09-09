@@ -1,4 +1,4 @@
-# Zellij AI Tab Notify - Know which Zellij tab needs your attention
+# Zellij AI Tab Notify
 
 ```
  ┌─────────┐ ┌─────────┐ ┌─────────────┐ ┌─────────┐
