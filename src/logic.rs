@@ -61,6 +61,47 @@ pub struct TabState {
     pub marked: bool,
 }
 
+/// Parses the `sound` config value. Defaults to enabled (`true`) when unset, and is
+/// disabled only by the literal value `"off"`.
+pub fn parse_sound_enabled(raw: Option<&str>) -> bool {
+    raw != Some("off")
+}
+
+/// Resolves which configured sound path (if any) should play for a signal kind that just
+/// caused a tab to be marked. Returns `None` when sound is disabled, or when no path is
+/// configured for that kind (sound stays opt-in per kind, per design.md).
+pub fn resolve_sound_path(
+    kind: SignalKind,
+    sound_enabled: bool,
+    finished_sound: Option<&str>,
+    needs_input_sound: Option<&str>,
+) -> Option<String> {
+    if !sound_enabled {
+        return None;
+    }
+    match kind {
+        SignalKind::Finished => finished_sound.map(str::to_string),
+        SignalKind::NeedsInput => needs_input_sound.map(str::to_string),
+    }
+}
+
+/// Single-quotes `path` for safe embedding as one argument in the `sh -c` playback
+/// command, escaping any embedded single quotes. The path comes from plugin config (a
+/// value the user themselves supplies), but is still built into a shell string rather
+/// than passed as a separate argv entry, so it must be quoted correctly regardless.
+pub fn shell_single_quote(path: &str) -> String {
+    format!("'{}'", path.replace('\'', r"'\''"))
+}
+
+/// Builds the `sh -c` fallback-chain command that plays `path` via whichever of
+/// `afplay`/`paplay`/`aplay` is available on the host, per design.md.
+pub fn build_playback_command(path: &str) -> String {
+    let quoted = shell_single_quote(path);
+    format!(
+        "afplay {quoted} 2>/dev/null || paplay {quoted} 2>/dev/null || aplay {quoted} 2>/dev/null"
+    )
+}
+
 /// Decides whether a received signal should mark a tab, and if so, what the tab's new name
 /// should be. Returns `None` when the tab is focused or already marked (no-op).
 pub fn decide_mark(
@@ -280,5 +321,74 @@ mod tests {
         .expect("background tab should be marked");
 
         assert_eq!(new_name, "❓ backend");
+    }
+
+    #[test]
+    fn sound_defaults_to_enabled_when_unset() {
+        assert!(parse_sound_enabled(None));
+    }
+
+    #[test]
+    fn sound_disabled_only_by_literal_off() {
+        assert!(!parse_sound_enabled(Some("off")));
+        assert!(parse_sound_enabled(Some("on")));
+        assert!(parse_sound_enabled(Some("anything-else")));
+    }
+
+    #[test]
+    fn no_sound_path_when_sound_disabled() {
+        assert_eq!(
+            resolve_sound_path(SignalKind::Finished, false, Some("done.wav"), Some("needs-input.wav")),
+            None
+        );
+        assert_eq!(
+            resolve_sound_path(SignalKind::NeedsInput, false, Some("done.wav"), Some("needs-input.wav")),
+            None
+        );
+    }
+
+    #[test]
+    fn no_sound_path_when_kind_is_unconfigured() {
+        assert_eq!(
+            resolve_sound_path(SignalKind::NeedsInput, true, Some("done.wav"), None),
+            None
+        );
+        assert_eq!(
+            resolve_sound_path(SignalKind::Finished, true, None, Some("needs-input.wav")),
+            None
+        );
+    }
+
+    #[test]
+    fn shell_quotes_a_plain_path() {
+        assert_eq!(shell_single_quote("/tmp/done.wav"), "'/tmp/done.wav'");
+    }
+
+    #[test]
+    fn shell_quotes_a_path_containing_single_quotes() {
+        assert_eq!(
+            shell_single_quote("/tmp/it's a bell.wav"),
+            r"'/tmp/it'\''s a bell.wav'"
+        );
+    }
+
+    #[test]
+    fn builds_the_fallback_chain_command() {
+        assert_eq!(
+            build_playback_command("/tmp/done.wav"),
+            "afplay '/tmp/done.wav' 2>/dev/null || paplay '/tmp/done.wav' 2>/dev/null || aplay '/tmp/done.wav' 2>/dev/null"
+        );
+    }
+
+    #[test]
+    fn resolves_the_path_matching_the_signal_kind() {
+        assert_eq!(
+            resolve_sound_path(SignalKind::Finished, true, Some("done.wav"), Some("needs-input.wav")),
+            Some("done.wav".to_string())
+        );
+        assert_eq!(
+            resolve_sound_path(SignalKind::NeedsInput, true, Some("done.wav"), Some("needs-input.wav")),
+            Some("needs-input.wav".to_string())
+        );
     }
 }

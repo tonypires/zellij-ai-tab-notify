@@ -53,9 +53,28 @@ https://github.com/user-attachments/assets/829d34a4-d5a2-46da-9867-3df2808d6b9f
    block — that creates a separate instance per tab, which breaks the tracking
    this plugin relies on.
 
-3. Restart (or reload) Zellij and approve the two permission prompts (read and
-   change application state) on first load. If the prompt pane doesn't render,
-   focus it and press `y` anyway.
+   Optionally, add a short notification sound alongside the tab marker by
+   pointing `finished_sound`/`needs_input_sound` at the bundled `assets/*.wav`
+   files (or your own):
+
+   ```kdl
+   load_plugins {
+       "file:/absolute/path/to/zellij_ai_tab_notify.wasm" {
+           finished_sound "/absolute/path/to/zellij-ai-tab-notify/assets/done.wav"
+           needs_input_sound "/absolute/path/to/zellij-ai-tab-notify/assets/needs-input.wav"
+       }
+   }
+   ```
+
+   Each sound is independent — set only one, or both, or neither. Set
+   `sound "off"` in the same block to mute sound entirely without removing
+   the configured paths.
+
+3. Restart (or reload) Zellij and approve the three permission prompts on
+   first load: read application state, change application state, and run
+   commands (used to shell out to a host audio player when a sound is
+   configured — requested unconditionally, even if you don't configure
+   sound). If the prompt pane doesn't render, focus it and press `y` anyway.
 
 4. Wire up Claude Code to send this plugin its signals, by pointing the `Stop`
    and `Notification` hooks in `~/.claude/settings.json` at the included
@@ -87,6 +106,14 @@ https://github.com/user-attachments/assets/829d34a4-d5a2-46da-9867-3df2808d6b9f
      }
    }
    ```
+
+### Sound playback
+
+When a sound is configured (see step 2), the plugin plays it by trying
+`afplay` (macOS), then `paplay`, then `aplay` (both Linux/PulseAudio and
+ALSA) — whichever is available on your host. If none of these are installed,
+or the configured path doesn't exist, playback silently fails and the tab is
+still marked as usual; nothing else is affected.
 
 ### What the hook script does
 

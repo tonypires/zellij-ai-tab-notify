@@ -3,7 +3,8 @@ use std::collections::BTreeMap;
 use zellij_tile::prelude::*;
 
 use crate::logic::{
-    build_pane_to_tab_map, decide_mark, parse_attention_signal, TabState, DEFAULT_PREFIX,
+    build_pane_to_tab_map, build_playback_command, decide_mark, parse_attention_signal,
+    parse_sound_enabled, resolve_sound_path, TabState, DEFAULT_PREFIX,
 };
 
 const PIPE_NAME: &str = "claude-attention";
@@ -16,6 +17,9 @@ pub struct State {
     focused_tab_position: Option<usize>,
     finished_prefix: String,
     needs_input_prefix: String,
+    sound_enabled: bool,
+    finished_sound: Option<String>,
+    needs_input_sound: Option<String>,
 }
 
 /// `rename_tab`'s `tab_index` argument is 1-based (Zellij converts it back to a 0-based
@@ -40,9 +44,14 @@ impl ZellijPlugin for State {
             .cloned()
             .unwrap_or(default_prefix);
 
+        self.sound_enabled = parse_sound_enabled(configuration.get("sound").map(String::as_str));
+        self.finished_sound = configuration.get("finished_sound").cloned();
+        self.needs_input_sound = configuration.get("needs_input_sound").cloned();
+
         request_permission(&[
             PermissionType::ReadApplicationState,
             PermissionType::ChangeApplicationState,
+            PermissionType::RunCommands,
         ]);
         subscribe(&[
             EventType::TabUpdate,
@@ -115,6 +124,18 @@ impl ZellijPlugin for State {
         ) {
             rename_tab_at_position(tab_position, new_name);
             self.tab_states.insert(tab_position, new_state);
+
+            if let Some(sound_path) = resolve_sound_path(
+                kind,
+                self.sound_enabled,
+                self.finished_sound.as_deref(),
+                self.needs_input_sound.as_deref(),
+            ) {
+                run_command(
+                    &["sh", "-c", &build_playback_command(&sound_path)],
+                    BTreeMap::new(),
+                );
+            }
         }
         false
     }
